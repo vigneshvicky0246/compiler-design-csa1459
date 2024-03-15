@@ -1,0 +1,22 @@
+%{ 
+//to find longest string and its length 
+	#include<stdio.h> 
+	#include<string.h> 
+	int longest = 0; 
+	char longestString[30]; 
+%} 
+%% 
+[a-zA-Z]+ { 
+if(yyleng>longest){ 
+	longest = yyleng; 
+	strcpy(longestString,yytext); 
+} 
+} 
+
+%% 
+
+int main(void){ 
+	yylex(); 
+	printf("The longest string is %s \n", longestString); 
+	printf("Length of a longest string is %d \n",longest); 
+} 

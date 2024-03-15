@@ -1,0 +1,52 @@
+%{
+#include <stdio.h>
+#include <string.h>  // For strlen()
+
+// Assuming successful URL parsing returns 0, failure returns 1
+int parse_url(const char* url);
+%}
+
+%%
+
+scheme: (http|ftp) { printf("Found scheme: %s\n", yytext); goto host; }
+.|\n { printf("Invalid scheme\n"); return 1; }
+
+host:  { printf("Parsing host...\n"); }
+[a-zA-Z0-9\-_]+ { printf("Found host segment: %s\n", yytext); goto dot_or_colon; }
+. { printf("Invalid host segment\n"); return 1; }
+
+dot_or_colon:  { printf("Checking for dot or colon...\n"); }
+: { printf("Found port\n"); goto path; }
+\. { printf("Found domain separator\n"); goto host; }
+.|\n { printf("Invalid character after host\n"); return 1; }
+
+path:  { printf("Parsing path...\n"); }
+[/a-zA-Z0-9\-_.%+@=&:?] { printf("Found path segment: %s\n", yytext); }
+.|\n { printf("Invalid character in path\n"); return 1; }
+
+/* Additional states for more complex URL components (optional) */
+username: [^/\s@]+ { printf("Found username: %s\n", yytext); goto password; }
+@ { printf("Found '@' symbol\n"); goto username; }
+password: [^/\s]+ { printf("Found password: %s\n", yytext); goto query_string; }
+query_string: \? [^#]* { printf("Found query string: %s\n", yytext); goto fragment; }
+fragment: #.+ { printf("Found fragment: %s\n", yytext); }
+
+%%
+
+int main() {
+    char url[1024];
+
+    printf("Enter URL: ");
+    fgets(url, sizeof(url), stdin);
+
+    // Remove trailing newline (if present)
+    url[strcspn(url, "\n")] = '\0';
+
+    if (parse_url(url) == 0) {
+        printf("URL Valid\n");
+    } else {
+        printf("URL Invalid\n");
+    }
+
+    return 0;
+}
